@@ -1,6 +1,7 @@
 import HeroCarousel from '@/components/home/HeroCarousel';
 import VehicleCard from '@/components/vehicles/VehicleCard';
 import AccessoryCard from '@/components/accessories/AccessoryCard';
+import TestimonialsGrid from '@/components/home/TestimonialsGrid';
 import { vehicles } from '@/data/vehicles';
 import { accessories } from '@/data/accessories';
 import Link from 'next/link';
@@ -198,6 +199,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      <TestimonialsGrid />
 
       {/* CTA Section */}
       <section className="py-20 bg-dark-900 text-white">

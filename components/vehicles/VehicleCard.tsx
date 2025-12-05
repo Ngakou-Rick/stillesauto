@@ -16,7 +16,7 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
       {/* Image Container */}
       <div className="relative h-56 overflow-hidden bg-gray-100">
         <Image
-          src={vehicle.image}
+           src={vehicle.imageUrl}
           alt={vehicle.name}
           fill
           className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -33,11 +33,6 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
               Vente
             </span>
           )}
-        </div>
-        {/* Rating */}
-        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1 shadow-md">
-          <Star className="text-yellow-500 fill-yellow-500" size={14} />
-          <span className="font-semibold text-xs">{vehicle.rating}</span>
         </div>
       </div>
 
@@ -62,10 +57,6 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
           <div className="flex items-center gap-2 text-gray-700">
             <Settings size={16} className="text-primary-600 flex-shrink-0" />
             <span className="capitalize truncate">{vehicle.transmission}</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-700">
-            <Users size={16} className="text-primary-600 flex-shrink-0" />
-            <span>{vehicle.seats} places</span>
           </div>
           <div className="flex items-center gap-2 text-gray-700">
             <span className="font-semibold truncate">{vehicle.mileage.toLocaleString()} km</span>

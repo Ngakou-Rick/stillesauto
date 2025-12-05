@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import VehicleCard from '@/components/vehicles/VehicleCard';
-import { vehicles } from '@/data/vehicles';
-import { VehicleCategory, FuelType, Transmission } from '@/types';
+import { getVehicles } from '@/lib/api';
+import { Vehicle, VehicleCategory, FuelType, Transmission } from '@/types';
 import { Search, SlidersHorizontal } from 'lucide-react';
+import Link from 'next/link';
 
 export default function LocationPage() {
-  const rentalVehicles = vehicles.filter(v => v.forRent);
-  const [filteredVehicles, setFilteredVehicles] = useState(rentalVehicles);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<VehicleCategory | 'all'>('all');
   const [selectedFuel, setSelectedFuel] = useState<FuelType | 'all'>('all');
@@ -16,8 +19,26 @@ export default function LocationPage() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [showFilters, setShowFilters] = useState(false);
 
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const data = await getVehicles();
+        const rentalVehicles = data.filter((v: Vehicle) => v.forRent);
+        setVehicles(rentalVehicles);
+        setFilteredVehicles(rentalVehicles);
+      } catch (err) {
+        setError("Impossible de charger les véhicules. Veuillez réessayer plus tard.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, []);
+
   const handleFilter = () => {
-    let filtered = rentalVehicles;
+    let filtered = vehicles;
 
     if (searchTerm) {
       filtered = filtered.filter(v =>
@@ -44,6 +65,28 @@ export default function LocationPage() {
 
     setFilteredVehicles(filtered);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-2xl font-semibold">Chargement des véhicules...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-red-600 mb-4">Erreur</h1>
+          <p className="text-xl text-gray-700">{error}</p>
+          <Link href="/" className="mt-6 btn-primary">
+            Retour à l'accueil
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,7 +229,7 @@ export default function LocationPage() {
                 setSelectedFuel('all');
                 setSelectedTransmission('all');
                 setPriceRange([0, 100000]);
-                setFilteredVehicles(rentalVehicles);
+                setFilteredVehicles(vehicles);
               }}
               className="btn-primary mt-6"
             >

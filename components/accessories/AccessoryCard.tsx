@@ -28,20 +28,10 @@ export default function AccessoryCard({ accessory }: AccessoryCardProps) {
             </span>
           </div>
         )}
-        {/* Rating */}
-        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md">
-          <Star className="text-yellow-500 fill-yellow-500" size={12} />
-          <span className="font-semibold text-xs">{accessory.rating}</span>
-        </div>
       </div>
 
       {/* Content */}
       <div className="p-4 flex flex-col flex-grow">
-        {/* Brand */}
-        <p className="text-xs text-primary-600 font-semibold mb-1 uppercase tracking-wide">
-          {accessory.brand}
-        </p>
-
         {/* Title */}
         <h3 className="text-base font-bold text-dark-900 mb-1.5 group-hover:text-primary-600 transition-colors line-clamp-2">
           {accessory.name}

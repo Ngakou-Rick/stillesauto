@@ -1,15 +1,39 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import HeroCarousel from '@/components/home/HeroCarousel';
 import VehicleCard from '@/components/vehicles/VehicleCard';
 import AccessoryCard from '@/components/accessories/AccessoryCard';
 import TestimonialsGrid from '@/components/home/TestimonialsGrid';
-import { vehicles } from '@/data/vehicles';
-import { accessories } from '@/data/accessories';
+import { getVehicles, getAccessories } from '@/lib/api';
+import { Vehicle, Accessory } from '@/types';
 import Link from 'next/link';
 import { Car, ShoppingBag, Globe2, Shield, Clock, Award, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function Home() {
-  const featuredVehicles = vehicles.slice(0, 6);
-  const featuredAccessories = accessories.slice(0, 4);
+  const [featuredVehicles, setFeaturedVehicles] = useState<Vehicle[]>([]);
+  const [featuredAccessories, setFeaturedAccessories] = useState<Accessory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [vehiclesData, accessoriesData] = await Promise.all([
+          getVehicles(),
+          getAccessories(),
+        ]);
+        setFeaturedVehicles(vehiclesData.slice(0, 6));
+        setFeaturedAccessories(accessoriesData.slice(0, 4));
+      } catch (err) {
+        setError("Impossible de charger les données. Veuillez réessayer plus tard.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div>

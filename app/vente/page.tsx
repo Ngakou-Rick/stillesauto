@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import VehicleCard from '@/components/vehicles/VehicleCard';
-import { vehicles } from '@/data/vehicles';
-import { VehicleCategory, FuelType, Transmission } from '@/types';
+import { getVehicles } from '@/lib/api';
+import { Vehicle, VehicleCategory, FuelType, Transmission } from '@/types';
 import { Search, SlidersHorizontal } from 'lucide-react';
+import Link from 'next/link';
 
 export default function VentePage() {
-  const saleVehicles = vehicles.filter(v => v.forSale);
-  const [filteredVehicles, setFilteredVehicles] = useState(saleVehicles);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<VehicleCategory | 'all'>('all');
   const [selectedFuel, setSelectedFuel] = useState<FuelType | 'all'>('all');
@@ -16,8 +19,26 @@ export default function VentePage() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000000]);
   const [showFilters, setShowFilters] = useState(false);
 
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const data = await getVehicles();
+        const saleVehicles = data.filter((v: Vehicle) => v.forSale);
+        setVehicles(saleVehicles);
+        setFilteredVehicles(saleVehicles);
+      } catch (err) {
+        setError("Impossible de charger les véhicules. Veuillez réessayer plus tard.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, []);
+
   const handleFilter = () => {
-    let filtered = saleVehicles;
+    let filtered = vehicles;
 
     if (searchTerm) {
       filtered = filtered.filter(v =>
@@ -39,11 +60,33 @@ export default function VentePage() {
     }
 
     filtered = filtered.filter(v =>
-      v.price >= priceRange[0] && v.price <= priceRange[1]
+      v.price && v.price >= priceRange[0] && v.price <= priceRange[1]
     );
 
     setFilteredVehicles(filtered);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-2xl font-semibold">Chargement des véhicules...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-red-600 mb-4">Erreur</h1>
+          <p className="text-xl text-gray-700">{error}</p>
+          <Link href="/" className="mt-6 btn-primary">
+            Retour à l'accueil
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -51,10 +94,10 @@ export default function VentePage() {
       <div className="gradient-bg text-white py-20">
         <div className="container-custom text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 font-display">
-            Vente de Véhicules
+            Achetez le Véhicule de Vos Rêves
           </h1>
           <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
-            Véhicules neufs et d'occasion certifiés au meilleur prix
+            Découvrez notre sélection exclusive de véhicules neufs et d'occasion.
           </p>
         </div>
       </div>
@@ -145,13 +188,13 @@ export default function VentePage() {
               {/* Price Range */}
               <div>
                 <label className="block text-sm font-semibold mb-2">
-                  Prix max: {(priceRange[1] / 1000000).toFixed(1)}M XAF
+                  Prix: {priceRange[0].toLocaleString()} - {priceRange[1].toLocaleString()} XAF
                 </label>
                 <input
                   type="range"
                   min="0"
                   max="50000000"
-                  step="1000000"
+                  step="100000"
                   value={priceRange[1]}
                   onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
                   className="w-full"
@@ -166,7 +209,7 @@ export default function VentePage() {
       <div className="container-custom py-16">
         <div className="mb-8">
           <h2 className="text-2xl font-bold">
-            {filteredVehicles.length} véhicule{filteredVehicles.length > 1 ? 's' : ''} disponible{filteredVehicles.length > 1 ? 's' : ''}
+            {filteredVehicles.length} véhicule{filteredVehicles.length > 1 ? 's' : ''} en vente
           </h2>
         </div>
 
@@ -186,7 +229,7 @@ export default function VentePage() {
                 setSelectedFuel('all');
                 setSelectedTransmission('all');
                 setPriceRange([0, 50000000]);
-                setFilteredVehicles(saleVehicles);
+                setFilteredVehicles(vehicles);
               }}
               className="btn-primary mt-6"
             >

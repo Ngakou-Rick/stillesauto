@@ -1,130 +1,154 @@
+// ===== AUTH =====
+export type UserRole = 'ADMIN' | 'EMPLOYEE' | 'CLIENT';
+
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+// ===== VEHICLES =====
+export type VehicleType = 'CAR' | 'SUV' | 'TRUCK' | 'VAN' | 'MOTORCYCLE';
+export type ListingMode = 'RENTAL' | 'SALE' | 'BOTH';
+export type FuelType = 'PETROL' | 'DIESEL' | 'ELECTRIC' | 'HYBRID';
+export type TransmissionType = 'MANUAL' | 'AUTOMATIC';
+
 export interface Vehicle {
   id: string;
-  name: string;
   brand: string;
   model: string;
   year: number;
-  category: VehicleCategory;
-  price: number;
-  dailyRate?: number;
-  image: string;
-  images: string[];
-  mileage: number;
+  type: VehicleType;
+  listingMode: ListingMode;
   fuelType: FuelType;
-  transmission: Transmission;
+  transmission: TransmissionType;
   seats: number;
-  status: VehicleStatus;
+  dailyRentalPrice?: number;
+  salePrice?: number;
+  available: boolean;
   features: string[];
-  description: string;
-  location: string;
-  rating: number;
-  reviews: Review[];
-  forSale: boolean;
-  forRent: boolean;
+  images: string[];
+  description?: string;
+  averageRating?: number;
+  reviewCount?: number;
 }
 
+// ===== ACCESSORIES =====
 export interface Accessory {
   id: string;
   name: string;
-  category: AccessoryCategory;
-  price: number;
-  image: string;
-  images: string[];
-  description: string;
-  stock: number;
-  rating: number;
-  reviews: Review[];
   brand: string;
+  category: string;
+  price: number;
+  stock: number;
+  images: string[];
+  description?: string;
+  features: string[];
+  averageRating?: number;
+  reviewCount?: number;
 }
+
+// ===== CART =====
+export type ItemType = 'VEHICLE' | 'ACCESSORY';
+export type TransactionType = 'PURCHASE' | 'RENTAL';
+
+export interface CartItem {
+  id: string;
+  itemType: ItemType;
+  transactionType: TransactionType;
+  itemId: string;
+  itemName: string;
+  itemImage?: string;
+  quantity: number;
+  unitPrice: number;
+  rentalStartDate?: string;
+  rentalEndDate?: string;
+  totalPrice: number;
+}
+
+export interface Cart {
+  items: CartItem[];
+  totalAmount: number;
+}
+
+// ===== REVIEWS =====
+export type EntityType = 'VEHICLE' | 'ACCESSORY';
+export type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface Review {
   id: string;
+  entityType: EntityType;
+  entityId: string;
   userId: string;
   userName: string;
   rating: number;
   comment: string;
-  date: Date;
-  verified: boolean;
+  status: ReviewStatus;
+  createdAt: string;
 }
 
-export interface CartItem {
+// ===== ORDERS =====
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+
+export interface Order {
   id: string;
-  type: 'vehicle' | 'accessory';
-  item: Vehicle | Accessory;
-  quantity: number;
-  rentalDates?: {
-    startDate: Date;
-    endDate: Date;
-  };
+  status: OrderStatus;
+  items: CartItem[];
+  totalAmount: number;
+  createdAt: string;
 }
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: UserRole;
-  avatar?: string;
-}
+// ===== IMPORT/EXPORT =====
+export type ImportExportStatus =
+  | 'SUBMITTED'
+  | 'UNDER_REVIEW'
+  | 'QUOTE_SENT'
+  | 'ACCEPTED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED';
 
 export interface ImportExportRequest {
   id: string;
-  userId: string;
-  vehicleDetails: {
-    brand: string;
-    model: string;
-    year: number;
-    origin: string;
-  };
-  type: 'import' | 'export';
+  type: 'IMPORT' | 'EXPORT';
+  description: string;
   status: ImportExportStatus;
-  documents: Document[];
-  createdAt: Date;
-  updatedAt: Date;
+  documents?: string[];
+  createdAt: string;
 }
 
-export interface Document {
-  id: string;
-  name: string;
-  type: string;
-  url: string;
-  uploadedAt: Date;
+// ===== PAGINATION =====
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+  };
 }
 
-export type VehicleCategory = 
-  | 'berline'
-  | 'suv'
-  | 'pickup'
-  | 'van'
-  | 'sport'
-  | 'luxury'
-  | 'electric';
+// ===== FILTERS =====
+export interface VehicleFilters {
+  type?: VehicleType;
+  listingMode?: ListingMode;
+  brand?: string;
+  fuelType?: FuelType;
+  minPrice?: number;
+  maxPrice?: number;
+  availableFrom?: string;
+  availableTo?: string;
+  page?: number;
+  limit?: number;
+}
 
-export type AccessoryCategory = 
-  | 'interior'
-  | 'exterior'
-  | 'electronics'
-  | 'maintenance'
-  | 'safety'
-  | 'performance';
-
-export type FuelType = 'essence' | 'diesel' | 'hybrid' | 'electric';
-
-export type Transmission = 'manual' | 'automatic';
-
-export type VehicleStatus = 
-  | 'available'
-  | 'rented'
-  | 'sold'
-  | 'maintenance'
-  | 'reserved';
-
-export type UserRole = 'client' | 'admin' | 'employee';
-
-export type ImportExportStatus = 
-  | 'pending'
-  | 'in_progress'
-  | 'documents_required'
-  | 'customs_clearance'
-  | 'completed'
-  | 'cancelled';
+export interface AccessoryFilters {
+  category?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  page?: number;
+  limit?: number;
+}

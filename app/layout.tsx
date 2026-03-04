@@ -1,16 +1,10 @@
-import type { Metadata } from "next";
-import { Inter, Montserrat } from "next/font/google";
-import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import type { Metadata } from 'next';
+import { Montserrat } from 'next/font/google';
+import './globals.css';
+import AppInitializer from '@/components/AppInitializer';
 
-const inter = Inter({ 
-  subsets: ["latin"],
-  variable: '--font-inter',
-});
-
-const montserrat = Montserrat({ 
-  subsets: ["latin"],
+const montserrat = Montserrat({
+  subsets: ['latin'],
   variable: '--font-montserrat',
 });
 
@@ -26,13 +20,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${inter.variable} ${montserrat.variable}`}>
-      <body className="font-sans">
-        <Navbar />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
+    <html lang="fr">
+      <body className={montserrat.variable}>
+        <AppInitializer />
+        {children}
       </body>
     </html>
   );

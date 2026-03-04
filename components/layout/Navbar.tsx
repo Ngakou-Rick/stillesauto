@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ShoppingCart, User, Globe, Phone, Mail } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Globe, Phone, Mail, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/auth.store';
+import { useCartStore } from '@/store/cart.store';
+import { useRouter } from 'next/navigation';
 
 const navigation = [
   { name: 'Accueil', href: '/' },
@@ -19,6 +22,15 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [language, setLanguage] = useState('FR');
+
+  const { isAuthenticated, user, logout } = useAuthStore();
+  const itemCount = useCartStore((state) => state.itemCount());
+  const router = useRouter();
+
+  async function handleLogout() {
+    await logout();
+    router.push('/');
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,6 +80,7 @@ export default function Navbar() {
       >
         <div className="container-custom">
           <div className="flex items-center justify-between h-20">
+
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
               <div className="relative w-12 h-12">
@@ -102,22 +115,51 @@ export default function Navbar() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
+
+              {/* Panier */}
               <Link
                 href="/panier"
                 className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <ShoppingCart className="text-dark-700" size={24} />
-                <span className="absolute -top-1 -right-1 bg-accent-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  0
-                </span>
+                {itemCount > 0 ? (
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    {itemCount}
+                  </span>
+                ) : (
+                  <span className="absolute -top-1 -right-1 bg-accent-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    0
+                  </span>
+                )}
               </Link>
-              <Link
-                href="/compte"
-                className="hidden md:flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                <User size={20} />
-                <span>Mon Compte</span>
-              </Link>
+
+              {/* Auth — Desktop */}
+              {isAuthenticated ? (
+                <div className="hidden md:flex items-center gap-3">
+                  <Link
+                    href="/compte"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    <User size={20} />
+                    <span>{user?.firstName}</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Se déconnecter"
+                  >
+                    <LogOut size={20} />
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  className="hidden md:flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  <User size={20} />
+                  <span>Connexion</span>
+                </Link>
+              )}
 
               {/* Mobile Menu Button */}
               <button
@@ -149,14 +191,36 @@ export default function Navbar() {
                     {item.name}
                   </Link>
                 ))}
-                <Link
-                  href="/compte"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors justify-center"
-                >
-                  <User size={20} />
-                  <span>Mon Compte</span>
-                </Link>
+
+                {/* Auth — Mobile */}
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      href="/compte"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors justify-center"
+                    >
+                      <User size={20} />
+                      <span>{user?.firstName} — Mon Compte</span>
+                    </Link>
+                    <button
+                      onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                      className="flex items-center gap-2 px-4 py-3 border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors justify-center"
+                    >
+                      <LogOut size={20} />
+                      <span>Se déconnecter</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors justify-center"
+                  >
+                    <User size={20} />
+                    <span>Connexion</span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>

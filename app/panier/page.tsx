@@ -1,192 +1,235 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatPrice } from '@/lib/utils';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
+import { useCartStore } from '@/store/cart.store';
+import { useAuthStore } from '@/store/auth.store';
+import {
+  ShoppingCart, Trash2, Calendar, Package,
+  Car, Loader2, ArrowRight, ShoppingBag
+} from 'lucide-react';
 
 export default function PanierPage() {
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const router = useRouter();
+  const { cart, isLoading, fetchCart, removeItem } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
 
-  const updateQuantity = (id: string, newQuantity: number) => {
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: Math.max(1, newQuantity) } : item
-      )
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    fetchCart();
+  }, [isAuthenticated]);
+
+  async function handleRemove(itemId: string) {
+    await removeItem(itemId);
+  }
+
+  async function handleCheckout() {
+    router.push('/commande');
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 size={48} className="animate-spin text-blue-600" />
+      </div>
     );
-  };
+  }
 
-  const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = subtotal > 50000 ? 0 : 5000;
-  const total = subtotal + deliveryFee;
+  const isEmpty = !cart || cart.items.length === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="gradient-bg text-white py-16">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-            Mon Panier
-          </h1>
-          <p className="text-xl text-white/90">
-            {cartItems.length} article{cartItems.length > 1 ? 's' : ''} dans votre panier
-          </p>
+    <main className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 px-4 py-6">
+        <div className="max-w-5xl mx-auto flex items-center gap-3">
+          <ShoppingCart size={24} className="text-blue-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Mon Panier</h1>
+          {!isEmpty && (
+            <span className="bg-blue-600 text-white text-sm font-bold px-2 py-0.5 rounded-full">
+              {cart.items.length}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="container-custom py-12">
-        {cartItems.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              {cartItems.map((item) => (
-                <div key={item.id} className="bg-white rounded-xl shadow-lg p-6">
-                  <div className="flex gap-6">
-                    {/* Image */}
-                    <div className="relative w-32 h-32 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+      <div className="max-w-5xl mx-auto px-4 py-10">
 
-                    {/* Details */}
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="text-xl font-bold mb-1">{item.name}</h3>
-                          <p className="text-gray-600 text-sm">{item.category}</p>
-                        </div>
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={20} />
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-4">
-                        {/* Quantity */}
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors"
-                          >
-                            <Minus size={16} />
-                          </button>
-                          <span className="font-semibold w-8 text-center">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors"
-                          >
-                            <Plus size={16} />
-                          </button>
-                        </div>
-
-                        {/* Price */}
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-primary-600">
-                            {formatPrice(item.price * item.quantity)}
-                          </p>
-                          {item.quantity > 1 && (
-                            <p className="text-sm text-gray-600">
-                              {formatPrice(item.price)} / unité
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg p-8 sticky top-24">
-                <h2 className="text-2xl font-bold mb-6">Résumé de la Commande</h2>
-
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Sous-total</span>
-                    <span className="font-semibold">{formatPrice(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Livraison</span>
-                    <span className="font-semibold">
-                      {deliveryFee === 0 ? 'Gratuite' : formatPrice(deliveryFee)}
-                    </span>
-                  </div>
-                  {subtotal < 50000 && (
-                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                      Ajoutez {formatPrice(50000 - subtotal)} pour la livraison gratuite
-                    </p>
-                  )}
-                </div>
-
-                <div className="border-t pt-4 mb-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold">Total</span>
-                    <span className="text-3xl font-bold text-primary-600">
-                      {formatPrice(total)}
-                    </span>
-                  </div>
-                </div>
-
-                <button className="btn-primary w-full mb-4 flex items-center justify-center gap-2">
-                  <span>Procéder au Paiement</span>
-                  <ArrowRight size={20} />
-                </button>
-
-                <Link href="/vente" className="btn-secondary w-full flex items-center justify-center gap-2">
-                  Continuer mes Achats
-                </Link>
-
-                {/* Payment Methods */}
-                <div className="mt-6 pt-6 border-t">
-                  <p className="text-sm font-semibold mb-3">Modes de paiement acceptés</p>
-                  <div className="flex gap-2 flex-wrap">
-                    <div className="px-3 py-2 bg-gray-100 rounded text-xs font-semibold">
-                      Carte bancaire
-                    </div>
-                    <div className="px-3 py-2 bg-gray-100 rounded text-xs font-semibold">
-                      MTN MoMo
-                    </div>
-                    <div className="px-3 py-2 bg-gray-100 rounded text-xs font-semibold">
-                      Orange Money
-                    </div>
-                  </div>
-                </div>
-              </div>
+        {/* Panier vide */}
+        {isEmpty ? (
+          <div className="text-center py-24">
+            <ShoppingBag size={64} className="mx-auto text-gray-200 mb-4" />
+            <h2 className="text-xl font-bold text-gray-700 mb-2">Votre panier est vide</h2>
+            <p className="text-gray-400 mb-8">Ajoutez des véhicules ou accessoires pour commencer</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/location"
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Voir les locations
+              </Link>
+              <Link
+                href="/accessoires"
+                className="border border-gray-300 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Voir les accessoires
+              </Link>
             </div>
           </div>
         ) : (
-          <div className="text-center py-20">
-            <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShoppingBag size={64} className="text-gray-400" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            {/* Liste des items */}
+            <div className="lg:col-span-2 space-y-4">
+              {cart.items.map((item) => {
+                const isRental = item.transactionType === 'RENTAL';
+                const isVehicle = item.itemType === 'VEHICLE';
+
+                // Calcul jours si location
+                const days = isRental && item.rentalStartDate && item.rentalEndDate
+                  ? Math.ceil(
+                      (new Date(item.rentalEndDate).getTime() - new Date(item.rentalStartDate).getTime())
+                      / (1000 * 60 * 60 * 24)
+                    )
+                  : null;
+
+                return (
+                  <div key={item.id} className="bg-white rounded-2xl shadow-sm p-5 flex gap-4">
+
+                    {/* Image */}
+                    <div className="relative h-24 w-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100">
+                      {item.itemImage ? (
+                        <Image
+                          src={item.itemImage}
+                          alt={item.itemName}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          {isVehicle
+                            ? <Car size={28} className="text-gray-300" />
+                            : <Package size={28} className="text-gray-300" />
+                          }
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Infos */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-bold text-gray-900 truncate">{item.itemName}</h3>
+                          {/* Badge type */}
+                          <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mt-1 ${
+                            isRental
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}>
+                            {isRental ? 'Location' : 'Achat'}
+                          </span>
+                        </div>
+
+                        {/* Bouton supprimer */}
+                        <button
+                          onClick={() => handleRemove(item.id)}
+                          className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+
+                      {/* Dates si location */}
+                      {isRental && item.rentalStartDate && item.rentalEndDate && (
+                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                          <Calendar size={14} className="text-blue-500" />
+                          <span>
+                            {new Date(item.rentalStartDate).toLocaleDateString('fr-FR')}
+                            {' → '}
+                            {new Date(item.rentalEndDate).toLocaleDateString('fr-FR')}
+                          </span>
+                          {days && (
+                            <span className="text-blue-600 font-medium">({days} j)</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Quantité si accessoire */}
+                      {!isVehicle && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Quantité : {item.quantity}
+                        </p>
+                      )}
+
+                      {/* Prix */}
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-sm text-gray-400">
+                          {item.unitPrice.toLocaleString('fr-FR')} FCFA
+                          {isRental ? ' / jour' : ' / unité'}
+                        </span>
+                        <span className="font-bold text-blue-600">
+                          {item.totalPrice.toLocaleString('fr-FR')} FCFA
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <h2 className="text-3xl font-bold mb-4">Votre panier est vide</h2>
-            <p className="text-gray-600 mb-8">
-              Découvrez nos véhicules et accessoires pour commencer vos achats
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/vente" className="btn-primary">
-                Voir les Véhicules
-              </Link>
-              <Link href="/accessoires" className="btn-secondary">
-                Voir les Accessoires
-              </Link>
+
+            {/* Récapitulatif */}
+            <div className="space-y-4">
+              <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-6">
+                <h2 className="font-bold text-lg text-gray-900 mb-4">Récapitulatif</h2>
+
+                {/* Détail par item */}
+                <div className="space-y-2 mb-4">
+                  {cart.items.map((item) => (
+                    <div key={item.id} className="flex justify-between text-sm text-gray-600">
+                      <span className="truncate max-w-[180px]">{item.itemName}</span>
+                      <span className="font-medium flex-shrink-0 ml-2">
+                        {item.totalPrice.toLocaleString('fr-FR')} FCFA
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Séparateur */}
+                <div className="border-t border-gray-100 pt-4 mb-6">
+                  <div className="flex justify-between font-bold text-gray-900 text-lg">
+                    <span>Total</span>
+                    <span className="text-blue-600">
+                      {cart.totalAmount.toLocaleString('fr-FR')} FCFA
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bouton commander */}
+                <button
+                  onClick={handleCheckout}
+                  className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  Passer la commande
+                  <ArrowRight size={18} />
+                </button>
+
+                {/* Continuer shopping */}
+                <Link
+                  href="/"
+                  className="block text-center text-sm text-gray-500 hover:text-blue-600 mt-3 transition-colors"
+                >
+                  Continuer mes achats
+                </Link>
+              </div>
             </div>
+
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

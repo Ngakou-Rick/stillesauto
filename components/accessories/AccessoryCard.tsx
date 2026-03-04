@@ -3,93 +3,70 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Accessory } from '@/types';
-import { formatPrice } from '@/lib/utils';
-import { Star, ShoppingCart, Info, Package } from 'lucide-react';
+import { Star, Package } from 'lucide-react';
 
 interface AccessoryCardProps {
   accessory: Accessory;
 }
 
 export default function AccessoryCard({ accessory }: AccessoryCardProps) {
-  const isLowStock = accessory.stock < 10;
+  const imageUrl = accessory.images?.[0] ?? '/images/placeholder-accessory.jpg';
 
   return (
-    <div className="card group flex flex-col h-full">
-      {/* Image Container */}
-      <div className="relative h-48 overflow-hidden bg-gray-100">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Package size={64} className="text-gray-300" />
-        </div>
-        {/* Stock Badge */}
-        {isLowStock && (
-          <div className="absolute top-3 left-3">
-            <span className="bg-accent-600 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-md">
-              Stock limité
-            </span>
-          </div>
-        )}
-        {/* Rating */}
-        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md">
-          <Star className="text-yellow-500 fill-yellow-500" size={12} />
-          <span className="font-semibold text-xs">{accessory.rating}</span>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4 flex flex-col flex-grow">
-        {/* Brand */}
-        <p className="text-xs text-primary-600 font-semibold mb-1 uppercase tracking-wide">
-          {accessory.brand}
-        </p>
-
-        {/* Title */}
-        <h3 className="text-base font-bold text-dark-900 mb-1.5 group-hover:text-primary-600 transition-colors line-clamp-2">
-          {accessory.name}
-        </h3>
-        
-        {/* Category */}
-        <p className="text-gray-600 mb-2 text-xs capitalize">
-          {accessory.category.replace('_', ' ')}
-        </p>
-
-        {/* Description */}
-        <p className="text-gray-700 text-xs mb-3 line-clamp-2 flex-grow">
-          {accessory.description}
-        </p>
-
-        {/* Stock Info */}
-        <div className="flex items-center gap-2 mb-3">
-          <Package size={14} className="text-gray-500 flex-shrink-0" />
-          <span className={`text-xs ${isLowStock ? 'text-accent-600 font-semibold' : 'text-gray-600'}`}>
-            {accessory.stock} en stock
+    <Link href={`/accessoires/${accessory.id}`}>
+      <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer">
+        {/* Image */}
+        <div className="relative h-48 w-full overflow-hidden">
+          <Image
+            src={imageUrl}
+            alt={accessory.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          {/* Badge stock */}
+          <span className={`absolute top-3 left-3 text-xs font-semibold px-2 py-1 rounded-full ${
+            accessory.stock > 0
+              ? 'bg-green-100 text-green-700'
+              : 'bg-red-100 text-red-700'
+          }`}>
+            {accessory.stock > 0 ? `${accessory.stock} en stock` : 'Rupture'}
           </span>
         </div>
 
-        {/* Price */}
-        <div className="border-t pt-3 mb-3">
-          <p className="text-xl font-bold text-primary-600">
-            {formatPrice(accessory.price)}
+        {/* Contenu */}
+        <div className="p-4">
+          <p className="text-blue-600 text-xs font-semibold uppercase tracking-wide mb-1">
+            {accessory.category}
           </p>
-        </div>
+          <h3 className="font-bold text-gray-900 text-base leading-tight mb-1">
+            {accessory.name}
+          </h3>
+          <p className="text-gray-400 text-sm mb-3">{accessory.brand}</p>
 
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button 
-            className="flex-1 btn-primary flex items-center justify-center gap-1.5 py-2 text-xs font-semibold"
-            disabled={accessory.stock === 0}
-          >
-            <ShoppingCart size={14} />
-            <span>Ajouter</span>
-          </button>
-          <Link
-            href={`/accessoires/${accessory.id}`}
-            className="flex-1 btn-secondary flex items-center justify-center gap-1.5 py-2 text-xs font-semibold"
-          >
-            <Info size={14} />
-            <span>Détails</span>
-          </Link>
+          {/* Note */}
+          {accessory.averageRating && (
+            <div className="flex items-center gap-1 mb-3">
+              <Star size={14} className="text-yellow-400 fill-yellow-400" />
+              <span className="text-sm font-medium text-gray-700">
+                {accessory.averageRating.toFixed(1)}
+              </span>
+              <span className="text-sm text-gray-400">
+                ({accessory.reviewCount} avis)
+              </span>
+            </div>
+          )}
+
+          {/* Prix */}
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-blue-600">
+              {accessory.price.toLocaleString('fr-FR')} FCFA
+            </span>
+            <span className="bg-blue-600 text-white text-sm px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">
+              Voir
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

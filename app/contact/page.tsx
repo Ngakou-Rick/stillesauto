@@ -1,256 +1,228 @@
 'use client';
 
 import { useState } from 'react';
-import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+import { contactService } from '@/lib/services/contact.service';
+import { Phone, Mail, MapPin, Send, Loader2, CheckCircle } from 'lucide-react';
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
     subject: '',
     message: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Handle form submission
-    console.log('Form submitted:', formData);
-    alert('Merci pour votre message ! Nous vous répondrons dans les plus brefs délais.');
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+    setIsLoading(true);
+    setError('');
+    try {
+      await contactService.sendMessage(form);
+      setSuccess(true);
+      setForm({ name: '', email: '', phone: '', subject: '', message: '' });
+    } catch {
+      setError('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="gradient-bg text-white py-20">
-        <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 font-display">
-            Contactez-Nous
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
-            Notre équipe est à votre écoute pour répondre à toutes vos questions
+    <main className="min-h-screen bg-gray-50">
+
+      {/* Hero */}
+      <section className="bg-blue-700 text-white py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl font-bold mb-4">Contactez-nous</h1>
+          <p className="text-blue-200 text-lg">
+            Notre équipe est disponible pour répondre à toutes vos questions
           </p>
         </div>
-      </div>
+      </section>
 
-      {/* Contact Info Cards */}
-      <section className="py-20">
-        <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            {/* Douala Office */}
-            <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <MapPin className="text-primary-600" size={32} />
+      <section className="max-w-6xl mx-auto px-4 py-16 grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+        {/* Infos contact */}
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Nos coordonnées</h2>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm space-y-5">
+            <div className="flex items-start gap-4">
+              <div className="bg-blue-50 p-3 rounded-xl flex-shrink-0">
+                <Phone size={20} className="text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold mb-4">Douala</h3>
-              <p className="text-gray-600 mb-2">Akwa, Boulevard de la Liberté</p>
-              <p className="text-gray-600">Face à l'Hôtel Akwa Palace</p>
+              <div>
+                <p className="font-semibold text-gray-900">Téléphone</p>
+                <a href="tel:+237123456789" className="text-gray-500 hover:text-blue-600 transition-colors text-sm">
+                  +237 123 456 789
+                </a>
+              </div>
             </div>
 
-            {/* Yaoundé Office */}
-            <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <MapPin className="text-primary-600" size={32} />
+            <div className="flex items-start gap-4">
+              <div className="bg-blue-50 p-3 rounded-xl flex-shrink-0">
+                <Mail size={20} className="text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold mb-4">Yaoundé</h3>
-              <p className="text-gray-600 mb-2">Bastos, Avenue Kennedy</p>
-              <p className="text-gray-600">Près de l'Ambassade de France</p>
+              <div>
+                <p className="font-semibold text-gray-900">Email</p>
+                <a href="mailto:contact@stillesauto.cm" className="text-gray-500 hover:text-blue-600 transition-colors text-sm">
+                  contact@stillesauto.cm
+                </a>
+              </div>
             </div>
 
-            {/* Phone */}
-            <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Phone className="text-primary-600" size={32} />
+            <div className="flex items-start gap-4">
+              <div className="bg-blue-50 p-3 rounded-xl flex-shrink-0">
+                <MapPin size={20} className="text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold mb-4">Téléphone</h3>
-              <p className="text-gray-600 mb-2">+237 123 456 789</p>
-              <p className="text-gray-600">+237 987 654 321</p>
-            </div>
-
-            {/* Email */}
-            <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Mail className="text-primary-600" size={32} />
+              <div>
+                <p className="font-semibold text-gray-900">Adresse</p>
+                <p className="text-gray-500 text-sm">Yaoundé, Cameroun</p>
               </div>
-              <h3 className="text-xl font-bold mb-4">Email</h3>
-              <p className="text-gray-600 mb-2">contact@stillesauto.cm</p>
-              <p className="text-gray-600">info@stillesauto.cm</p>
             </div>
           </div>
 
-          {/* Contact Form & Hours */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Contact Form */}
-            <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-lg">
-              <h2 className="text-3xl font-bold mb-6">Envoyez-nous un Message</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-semibold mb-2">
-                      Nom Complet *
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="input-field"
-                      placeholder="Votre nom"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-semibold mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="input-field"
-                      placeholder="votre@email.com"
-                    />
-                  </div>
+          {/* Horaires */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <h3 className="font-bold text-gray-900 mb-4">Horaires d'ouverture</h3>
+            <div className="space-y-2 text-sm">
+              {[
+                { jour: 'Lundi — Vendredi', heure: '8h00 — 18h00' },
+                { jour: 'Samedi', heure: '9h00 — 16h00' },
+                { jour: 'Dimanche', heure: 'Fermé' },
+              ].map((h) => (
+                <div key={h.jour} className="flex justify-between">
+                  <span className="text-gray-500">{h.jour}</span>
+                  <span className={`font-medium ${h.heure === 'Fermé' ? 'text-red-500' : 'text-gray-900'}`}>
+                    {h.heure}
+                  </span>
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-semibold mb-2">
-                      Téléphone *
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      required
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="input-field"
-                      placeholder="+237 XXX XXX XXX"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-semibold mb-2">
-                      Sujet *
-                    </label>
-                    <select
-                      id="subject"
-                      name="subject"
-                      required
-                      value={formData.subject}
-                      onChange={handleChange}
-                      className="input-field"
-                    >
-                      <option value="">Sélectionnez un sujet</option>
-                      <option value="location">Location de véhicule</option>
-                      <option value="vente">Achat de véhicule</option>
-                      <option value="accessoires">Accessoires</option>
-                      <option value="import-export">Import/Export</option>
-                      <option value="autre">Autre</option>
-                    </select>
-                  </div>
-                </div>
+        {/* Formulaire */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-2xl p-8 shadow-sm">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Envoyer un message</h2>
 
+            {/* Succès */}
+            {success && (
+              <div className="flex items-center gap-3 bg-green-50 text-green-700 px-4 py-4 rounded-xl mb-6 border border-green-100">
+                <CheckCircle size={20} />
                 <div>
-                  <label htmlFor="message" className="block text-sm font-semibold mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    value={formData.message}
+                  <p className="font-semibold">Message envoyé !</p>
+                  <p className="text-sm">Nous vous répondrons dans les plus brefs délais.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Erreur */}
+            {error && (
+              <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mb-6 border border-red-100">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={form.name}
                     onChange={handleChange}
-                    rows={6}
-                    className="input-field resize-none"
-                    placeholder="Décrivez votre demande..."
+                    placeholder="Jean Dupont"
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                   />
                 </div>
-
-                <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
-                  <Send size={20} />
-                  <span>Envoyer le Message</span>
-                </button>
-              </form>
-            </div>
-
-            {/* Business Hours & Map */}
-            <div className="space-y-8">
-              {/* Business Hours */}
-              <div className="bg-white p-8 rounded-xl shadow-lg">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                    <Clock className="text-primary-600" size={24} />
-                  </div>
-                  <h3 className="text-2xl font-bold">Horaires</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center pb-3 border-b">
-                    <span className="font-semibold">Lundi - Vendredi</span>
-                    <span className="text-gray-600">8h00 - 18h00</span>
-                  </div>
-                  <div className="flex justify-between items-center pb-3 border-b">
-                    <span className="font-semibold">Samedi</span>
-                    <span className="text-gray-600">8h00 - 18h00</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">Dimanche</span>
-                    <span className="text-gray-600">9h00 - 14h00</span>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="vous@exemple.com"
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  />
                 </div>
               </div>
 
-              {/* Quick Info */}
-              <div className="bg-primary-600 text-white p-8 rounded-xl shadow-lg">
-                <h3 className="text-2xl font-bold mb-4">Besoin d'Aide ?</h3>
-                <p className="mb-6">
-                  Notre équipe est disponible pour répondre à toutes vos questions par téléphone ou email.
-                </p>
-                <div className="space-y-3">
-                  <a
-                    href="tel:+237123456789"
-                    className="block bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold text-center hover:bg-gray-100 transition-colors"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Téléphone <span className="text-gray-400 font-normal">(optionnel)</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="+237 6XX XXX XXX"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Sujet</label>
+                  <select
+                    name="subject"
+                    value={form.subject}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                   >
-                    Appelez-nous
-                  </a>
-                  <a
-                    href="mailto:contact@stillesauto.cm"
-                    className="block bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-semibold text-center hover:bg-white/30 transition-colors"
-                  >
-                    Envoyez un Email
-                  </a>
+                    <option value="">Choisir un sujet</option>
+                    <option value="Location">Location de véhicule</option>
+                    <option value="Vente">Achat de véhicule</option>
+                    <option value="Accessoires">Accessoires</option>
+                    <option value="Import/Export">Import / Export</option>
+                    <option value="Autre">Autre</option>
+                  </select>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Map Section */}
-      <section className="py-20 bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="section-title">Nos Agences</h2>
-            <p className="section-subtitle">
-              Visitez-nous dans l'une de nos agences à Douala ou Yaoundé
-            </p>
-          </div>
-          <div className="bg-gray-200 rounded-xl overflow-hidden h-96 flex items-center justify-center">
-            <p className="text-gray-600 text-lg">Carte Google Maps - Intégration à venir</p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <textarea
+                  name="message"
+                  value={form.message}
+                  onChange={handleChange}
+                  placeholder="Décrivez votre demande..."
+                  required
+                  rows={5}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isLoading
+                  ? <><Loader2 size={18} className="animate-spin" /> Envoi en cours...</>
+                  : <><Send size={18} /> Envoyer le message</>
+                }
+              </button>
+            </form>
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
